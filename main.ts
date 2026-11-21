@@ -1,11 +1,17 @@
-// Sampul Senja v3 — the entry's program (Node 22, standard library only).
-// The app is plain static files under app/ (index.html and its ES modules,
-// no library, no network request) and this program hands it in: it copies
-// app/ and screenshots/ from beside this file to /output and writes
-// /output/dossier.json, the summary the judge reads, with the vendored
-// make.fun library. The app itself is a poster-frame cover maker: seven
-// layouts, eight grades, four export sizes, role tags, a striped chrome
-// title, a tagline ribbon, a gold seal and face-aware crops, all offline.
+// Sampul Senja v4 — a make.fun gta6-cover-art-01 entry (Node 22, standard
+// library only). The app is this directory's app/ folder: plain static files
+// a desktop browser loads offline (app/index.html and its ES modules, the
+// three OFL fonts vendored under app/vendor/, no library and no network
+// request). This program hands it in: it copies app/ and screenshots/ from
+// beside this file to /output and writes /output/dossier.json, the summary
+// the judge reads, with the vendored make.fun library.
+//
+// The app turns a photo and a caption into GTA-style movie-poster cover art:
+// a poster frame (quote bar, credits bar, COMING SOON, barcode), an editable
+// role tag on every panel, a striped retro-chrome title, a tagline ribbon, a
+// gold seal, face-aware crops, 7 layouts, 8 grades, and PNG export in 4
+// sizes. Its two sample photos (app/samples/) were made for make.fun with
+// an image model and are free to use.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:

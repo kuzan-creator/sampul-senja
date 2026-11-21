@@ -1,14 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sampul Senja — Ubah foto jadi sampul ala poster</title>
 <link rel="icon" href="data:,">
-<title>Sampul Senja — Ubah Foto jadi Sampul ala Poster</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app" class="app"></div>
+<header>
+  <div class="logo">SS</div>
+  <div>
+    <h1>Sampul Senja</h1>
+    <p>Ubah foto jadi sampul ala poster — offline, tanpa unggah.</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="ghost" id="btn-undo" type="button">↩ Urungkan</button>
+  <button class="ghost" id="btn-redo" type="button">↪ Ulangi</button>
+</header>
+<main>
+  <div id="preview-wrap">
+    <canvas id="preview" width="960" height="540"></canvas>
+    <div id="face-note" hidden>Wajah terdeteksi ✓</div>
+  </div>
+  <aside>
+    <section>
+      <h2>FOTO</h2>
+      <div class="row">
+        <button class="primary" id="btn-upload" type="button">+ Unggah foto</button>
+        <button class="ghost" id="btn-fill-all" type="button">Isi semua panel</button>
+      </div>
+      <input type="file" id="file-photo" accept="image/*" hidden>
+      <div id="samples"></div>
+      <p class="hint">Foto dibaca di perangkatmu dan tidak pernah diunggah.</p>
+      <label for="zoom">Zoom panel terpilih</label>
+      <input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1">
+      <p class="hint">Klik panel untuk memilihnya, lalu seret untuk menggeser foto di dalamnya.</p>
+    </section>
+    <section>
+      <h2>TATA LETAK</h2>
+      <div class="chips" id="layouts"></div>
+    </section>
+    <section>
+      <h2>WARNA</h2>
+      <div class="chips" id="grades"></div>
+    </section>
+    <section>
+      <h2>GAYA JUDUL</h2>
+      <div class="chips" id="title-styles"></div>
+    </section>
+    <section>
+      <h2>UKURAN</h2>
+      <div class="chips" id="sizes"></div>
+    </section>
+    <section>
+      <h2>JUDUL &amp; TEKS</h2>
+      <label for="in-title">Judul</label>
+      <input type="text" id="in-title" maxlength="40">
+      <label for="in-subtitle">Subjudul</label>
+      <input type="text" id="in-subtitle" maxlength="60">
+      <label for="in-quote">Kutipan (bar atas)</label>
+      <input type="text" id="in-quote" maxlength="80">
+      <label for="in-tagline">Tagline (pita)</label>
+      <input type="text" id="in-tagline" maxlength="60">
+      <label for="in-credits">Kredit (bar bawah)</label>
+      <input type="text" id="in-credits" maxlength="80">
+      <label for="in-sealText">Teks segel emas</label>
+      <input type="text" id="in-sealText" maxlength="30">
+    </section>
+    <section>
+      <h2>ROLE TAG</h2>
+      <div id="roles"></div>
+    </section>
+    <section>
+      <h2>TAMPILAN</h2>
+      <label class="toggle"><input type="checkbox" id="tg-frame"> Bingkai poster (kutipan + credit + barcode)</label>
+      <label class="toggle"><input type="checkbox" id="tg-tags"> Role tag di tiap panel</label>
+      <label class="toggle"><input type="checkbox" id="tg-seal"> Segel emas</label>
+    </section>
+    <section>
+      <h2>EKSPOR</h2>
+      <div class="row">
+        <button class="primary" id="btn-export-all" type="button">Export semua ukuran</button>
+      </div>
+      <div class="row" style="margin-top: 8px;">
+        <button class="ghost" type="button" data-export="square">1080 × 1080</button>
+        <button class="ghost" type="button" data-export="portrait">1080 × 1350</button>
+        <button class="ghost" type="button" data-export="wide">1920 × 1080</button>
+        <button class="ghost" type="button" data-export="story">Story</button>
+      </div>
+    </section>
+  </aside>
+</main>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
