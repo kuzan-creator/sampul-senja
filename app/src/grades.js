@@ -1,5 +1,6 @@
 // Colour grades: a canvas filter for the photos plus overlay washes and the lettering palette.
 // Each grade keeps the photos recognisable while giving the cover its sunset or neon look.
+// subtitleGlow colours the neon glow behind the script subtitle.
 export const GRADES = {
   senja: {
     id: 'senja', name: 'Senja',
@@ -10,6 +11,7 @@ export const GRADES = {
     ],
     title: ['#fff3b0', '#ffb347', '#ff5e78'],
     outline: '#230a24',
+    subtitleGlow: '#ff2d78',
   },
   neon: {
     id: 'neon', name: 'Neon',
@@ -20,6 +22,7 @@ export const GRADES = {
     ],
     title: ['#a5f3fc', '#f0abfc', '#ff2d95'],
     outline: '#12041f',
+    subtitleGlow: '#00e5ff',
   },
   dusk: {
     id: 'dusk', name: 'Senja Ungu',
@@ -30,6 +33,7 @@ export const GRADES = {
     ],
     title: ['#e9d5ff', '#c084fc', '#f472b6'],
     outline: '#160a24',
+    subtitleGlow: '#c084fc',
   },
   palm: {
     id: 'palm', name: 'Emas Palem',
@@ -40,6 +44,29 @@ export const GRADES = {
     ],
     title: ['#fef08a', '#fbbf24', '#fb7185'],
     outline: '#241002',
+    subtitleGlow: '#fbbf24',
+  },
+  teal: {
+    id: 'teal', name: 'Pantai Biru',
+    filter: 'saturate(1.28) contrast(1.10) brightness(1.04)',
+    washes: [
+      { blend: 'soft-light', stops: [[0, 'rgba(0,200,220,0.55)'], [1, 'rgba(0,120,200,0.50)']] },
+      { blend: 'overlay', stops: [[0, 'rgba(20,220,190,0.12)'], [1, 'rgba(0,40,110,0.24)']] },
+    ],
+    title: ['#ecfeff', '#67e8f9', '#0ea5e9'],
+    outline: '#04222e',
+    subtitleGlow: '#22d3ee',
+  },
+  noir: {
+    id: 'noir', name: 'Noir',
+    filter: 'grayscale(1) contrast(1.28) brightness(1.04)',
+    washes: [
+      { blend: 'overlay', stops: [[0, 'rgba(255,255,255,0.14)'], [1, 'rgba(0,0,0,0.30)']] },
+      { blend: 'soft-light', stops: [[0, 'rgba(255,255,255,0.20)'], [1, 'rgba(0,0,0,0.28)']] },
+    ],
+    title: ['#ffffff', '#d4d4d4', '#8a8a8a'],
+    outline: '#000000',
+    subtitleGlow: '#f5f5f5',
   },
 };
 

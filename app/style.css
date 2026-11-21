@@ -12,6 +12,13 @@
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Pacifico';
+  src: url('./vendor/Pacifico-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -72,6 +79,8 @@ input[type="text"] {
   border: 1px solid #4a2a63; background: #160a1e; color: #f5eef7; font: inherit;
 }
 input[type="range"] { width: 100%; accent-color: #ff5e78; }
+.check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.check input { accent-color: #ff5e78; width: 16px; height: 16px; }
 .upload {
   display: inline-block; padding: 8px 14px; border-radius: 999px; cursor: pointer;
   background: linear-gradient(135deg, #ffd23e, #ff5e3a 55%, #ff2d78);

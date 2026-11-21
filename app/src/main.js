@@ -18,6 +18,7 @@ function freshState() {
     title: DEFAULT_TITLE,
     subtitle: DEFAULT_SUBTITLE,
     titleScale: 1,
+    badge: true,
     photos: [],
     panels: [],
     selectedPanel: 0,
@@ -41,6 +42,7 @@ export function createApp() {
       title: state.title,
       subtitle: state.subtitle,
       titleScale: state.titleScale,
+      badge: state.badge,
       panels: state.panels,
       selectedPanel: state.selectedPanel,
       selectedPhotoId: state.selectedPhotoId,
@@ -55,6 +57,7 @@ export function createApp() {
     state.title = s.title;
     state.subtitle = s.subtitle;
     state.titleScale = s.titleScale;
+    state.badge = s.badge !== false;
     state.panels = s.panels.map((p) => ({ ...p }));
     state.selectedPanel = s.selectedPanel;
     state.selectedPhotoId = s.selectedPhotoId;
@@ -144,6 +147,7 @@ export function createApp() {
     setTitle(t, opts) { change(() => { state.title = t; }, opts); },
     setSubtitle(t, opts) { change(() => { state.subtitle = t; }, opts); },
     setTitleScale(v, opts) { change(() => { state.titleScale = v; }, opts); },
+    setBadge(v, opts) { change(() => { state.badge = v; }, opts); },
     selectPanel(i) {
       state.selectedPanel = i;
       const panel = state.panels[i];
@@ -236,6 +240,7 @@ export function createApp() {
           Promise.all([
             document.fonts.load('400 100px Anton'),
             document.fonts.load('400 100px "Bebas Neue"'),
+            document.fonts.load('400 100px Pacifico'),
           ]),
           new Promise((resolve) => setTimeout(resolve, 4000)),
         ]);

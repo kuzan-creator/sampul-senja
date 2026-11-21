@@ -4,6 +4,7 @@ export const SIZES = {
   square: { id: 'square', label: '1080 × 1080', w: 1080, h: 1080 },
   portrait: { id: 'portrait', label: '1080 × 1350', w: 1080, h: 1350 },
   landscape: { id: 'landscape', label: '1920 × 1080', w: 1920, h: 1080 },
+  story: { id: 'story', label: '1080 × 1920', w: 1080, h: 1920 },
 };
 
 export const SAMPLE_PHOTOS = [
@@ -12,7 +13,8 @@ export const SAMPLE_PHOTOS = [
 ];
 
 export const DEFAULT_TITLE = 'SAMPUL SENJA';
-export const DEFAULT_SUBTITLE = 'KOTA DI UJUNG SENJA';
+// Mixed case on purpose: the subtitle is set in Pacifico, a script face that reads best uncapitalised.
+export const DEFAULT_SUBTITLE = 'Kota di Ujung Senja';
 
 /** A tiny seeded random (mulberry32) so staged screenshots and grain re-take identically. */
 export function mulberry32(seed) {

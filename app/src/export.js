@@ -1,4 +1,5 @@
-// Exports the current cover as a PNG file at one of the three post sizes.
+// Exports the current cover as a PNG file at one of the four post sizes,
+// or at all of them at once.
 import { SIZES } from './config.js';
 import { drawCover } from './render.js';
 
@@ -30,4 +31,17 @@ export async function exportSize(state, sizeId) {
   const blob = await renderPNG(state, sizeId);
   downloadBlob(blob, `sampul-senja-${size.w}x${size.h}.png`);
   return blob;
+}
+
+/** Exports every post size in turn, with a short pause between downloads so the
+ * browser keeps each one instead of blocking the rest as automatic downloads. */
+export async function exportAllSizes(state) {
+  const files = [];
+  for (const size of Object.values(SIZES)) {
+    const blob = await renderPNG(state, size.id);
+    downloadBlob(blob, `sampul-senja-${size.w}x${size.h}.png`);
+    files.push(`sampul-senja-${size.w}x${size.h}.png`);
+    await new Promise((resolve) => setTimeout(resolve, 450));
+  }
+  return files;
 }

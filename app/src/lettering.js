@@ -1,7 +1,8 @@
 // Bold poster lettering: a title with a gradient fill, dark outline and drop shadow,
-// plus a letter-spaced subtitle underneath.
+// plus a script subtitle in Pacifico with a neon glow.
+// Pacifico is a script face, so the subtitle is never letter-spaced and never uppercased.
 const TITLE_FONT = 'Anton, "Arial Black", sans-serif';
-const SUB_FONT = '"Bebas Neue", "Arial Narrow", sans-serif';
+const SUB_FONT = 'Pacifico, "Bebas Neue", cursive';
 
 /** The largest title size (px) that fits `text` inside maxWidth, starting from startSize. */
 export function fitTitleSize(ctx, text, maxWidth, startSize) {
@@ -36,16 +37,23 @@ export function drawTitle(ctx, text, cx, baselineY, size, colors, outline) {
   ctx.restore();
 }
 
-/** Draws the subtitle centred at (cx, baselineY), letter-spaced and in white. */
-export function drawSubtitle(ctx, text, cx, baselineY, size) {
+/** Draws the script subtitle centred at (cx, baselineY): a neon glow pass in the
+ * grade's colour, then a crisp white script on top with a soft dark shadow. */
+export function drawSubtitle(ctx, text, cx, baselineY, size, glowColor) {
   ctx.save();
   ctx.font = `400 ${size}px ${SUB_FONT}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-  if ('letterSpacing' in ctx) ctx.letterSpacing = `${Math.round(size * 0.32)}px`;
-  ctx.shadowColor = 'rgba(10, 0, 20, 0.65)';
-  ctx.shadowBlur = size * 0.25;
-  ctx.shadowOffsetY = size * 0.06;
+  // Glow pass: the script painted in the glow colour, blurred wide.
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = size * 0.55;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = glowColor;
+  ctx.fillText(text, cx, baselineY);
+  // Crisp pass: white script with a soft dark shadow so it stays readable.
+  ctx.shadowColor = 'rgba(10, 0, 20, 0.7)';
+  ctx.shadowBlur = size * 0.18;
+  ctx.shadowOffsetY = size * 0.05;
   ctx.fillStyle = '#ffffff';
   ctx.fillText(text, cx, baselineY);
   ctx.restore();

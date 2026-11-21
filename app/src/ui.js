@@ -2,6 +2,7 @@
 import { SIZES, SAMPLE_PHOTOS, loadImage } from './config.js';
 import { LAYOUTS, panelAt } from './layouts.js';
 import { GRADES } from './grades.js';
+import { exportAllSizes } from './export.js';
 
 export function initUI(app) {
   const $ = (id) => document.getElementById(id);
@@ -48,6 +49,15 @@ export function initUI(app) {
       }
     });
   }
+  chip($('exportList'), 'Export semua ukuran', async () => {
+    status.textContent = 'Mengekspor semua ukuran…';
+    try {
+      const files = await exportAllSizes(app.state);
+      status.textContent = `Tersimpan ${files.length} PNG: ${files.join(', ')}`;
+    } catch {
+      status.textContent = 'Gagal mengekspor. Coba lagi.';
+    }
+  });
   for (const sample of SAMPLE_PHOTOS) {
     chip($('sampleList'), `Contoh: ${sample.name}`, async () => {
       await app.ensureSamples();
@@ -101,6 +111,7 @@ export function initUI(app) {
     if (document.activeElement !== $('titleInput')) $('titleInput').value = s.title;
     if (document.activeElement !== $('subtitleInput')) $('subtitleInput').value = s.subtitle;
     $('titleScale').value = String(s.titleScale);
+    $('badgeToggle').checked = s.badge;
     $('undoBtn').disabled = !app.canUndo();
     $('redoBtn').disabled = !app.canRedo();
     rebuildThumbs();
@@ -134,6 +145,7 @@ export function initUI(app) {
   $('subtitleInput').addEventListener('change', () => app.commit());
   $('titleScale').addEventListener('input', (e) => app.setTitleScale(parseFloat(e.target.value), { silent: true }));
   $('titleScale').addEventListener('change', () => app.commit());
+  $('badgeToggle').addEventListener('change', (e) => app.setBadge(e.target.checked));
   $('zoomRange').addEventListener('input', (e) => app.setPanelZoom(parseFloat(e.target.value), { silent: true }));
   $('zoomRange').addEventListener('change', () => app.commit());
   $('centerCrop').addEventListener('click', () => app.centerSelectedPanel());

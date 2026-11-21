@@ -25,5 +25,16 @@ export function defaultPanels(layoutId, photoIds, seed) {
       oy: (rnd() - 0.5) * 0.6,
     });
   }
+  // A nine-panel sheet of one photo reads as a contact sheet: spread the panels
+  // over the photo in a 3 x 3 grid of pans instead of random ones.
+  if (layoutId === 'nine' && photoIds.length === 1) {
+    for (let i = 0; i < count; i += 1) {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      panels[i].zoom = 1.9;
+      panels[i].ox = -0.28 + col * 0.28;
+      panels[i].oy = -0.28 + row * 0.28;
+    }
+  }
   return panels;
 }
