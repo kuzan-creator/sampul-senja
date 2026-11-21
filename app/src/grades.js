@@ -1,85 +1,71 @@
-// Colour grades: a canvas filter for the photos plus overlay washes and the lettering palette.
-// Each grade keeps the photos recognisable while giving the cover its sunset or neon look.
-// subtitleGlow colours the neon glow behind the script subtitle.
-export const GRADES = {
-  senja: {
-    id: 'senja', name: 'Senja',
-    filter: 'saturate(1.30) contrast(1.06) brightness(1.03)',
-    washes: [
-      { blend: 'soft-light', stops: [[0, 'rgba(255,170,60,0.55)'], [1, 'rgba(255,70,120,0.55)']] },
-      { blend: 'overlay', stops: [[0, 'rgba(255,120,40,0.10)'], [1, 'rgba(120,20,90,0.22)']] },
-    ],
-    title: ['#fff3b0', '#ffb347', '#ff5e78'],
-    outline: '#230a24',
-    subtitleGlow: '#ff2d78',
-  },
-  neon: {
-    id: 'neon', name: 'Neon',
-    filter: 'saturate(1.55) contrast(1.16) brightness(1.00)',
-    washes: [
-      { blend: 'soft-light', stops: [[0, 'rgba(0,229,255,0.50)'], [1, 'rgba(255,45,149,0.55)']] },
-      { blend: 'screen', stops: [[0, 'rgba(255,0,128,0.08)'], [1, 'rgba(0,180,255,0.10)']] },
-    ],
-    title: ['#a5f3fc', '#f0abfc', '#ff2d95'],
-    outline: '#12041f',
-    subtitleGlow: '#00e5ff',
-  },
-  dusk: {
-    id: 'dusk', name: 'Senja Ungu',
-    filter: 'saturate(1.12) contrast(1.09) brightness(0.96)',
-    washes: [
-      { blend: 'overlay', stops: [[0, 'rgba(124,58,237,0.30)'], [1, 'rgba(45,212,191,0.28)']] },
-      { blend: 'soft-light', stops: [[0, 'rgba(30,10,60,0.25)'], [1, 'rgba(255,120,180,0.18)']] },
-    ],
-    title: ['#e9d5ff', '#c084fc', '#f472b6'],
-    outline: '#160a24',
-    subtitleGlow: '#c084fc',
-  },
-  palm: {
-    id: 'palm', name: 'Emas Palem',
-    filter: 'sepia(0.22) saturate(1.35) contrast(1.06) brightness(1.02)',
-    washes: [
-      { blend: 'soft-light', stops: [[0, 'rgba(255,214,100,0.55)'], [1, 'rgba(255,120,60,0.45)']] },
-      { blend: 'overlay', stops: [[0, 'rgba(255,200,80,0.08)'], [1, 'rgba(90,40,10,0.20)']] },
-    ],
-    title: ['#fef08a', '#fbbf24', '#fb7185'],
-    outline: '#241002',
-    subtitleGlow: '#fbbf24',
-  },
-  teal: {
-    id: 'teal', name: 'Pantai Biru',
-    filter: 'saturate(1.28) contrast(1.10) brightness(1.04)',
-    washes: [
-      { blend: 'soft-light', stops: [[0, 'rgba(0,200,220,0.55)'], [1, 'rgba(0,120,200,0.50)']] },
-      { blend: 'overlay', stops: [[0, 'rgba(20,220,190,0.12)'], [1, 'rgba(0,40,110,0.24)']] },
-    ],
-    title: ['#ecfeff', '#67e8f9', '#0ea5e9'],
-    outline: '#04222e',
-    subtitleGlow: '#22d3ee',
-  },
-  noir: {
-    id: 'noir', name: 'Noir',
-    filter: 'grayscale(1) contrast(1.28) brightness(1.04)',
-    washes: [
-      { blend: 'overlay', stops: [[0, 'rgba(255,255,255,0.14)'], [1, 'rgba(0,0,0,0.30)']] },
-      { blend: 'soft-light', stops: [[0, 'rgba(255,255,255,0.20)'], [1, 'rgba(0,0,0,0.28)']] },
-    ],
-    title: ['#ffffff', '#d4d4d4', '#8a8a8a'],
-    outline: '#000000',
-    subtitleGlow: '#f5f5f5',
-  },
-};
+// Sampul Senja v3 — grades: the colour treatment of a cover.
+// A grade is a canvas filter on the photo plus a tinted overlay, a vignette
+// and a seeded grain pass, so every grade reads as one coherent look.
 
-/** Paints a grade's overlay washes over the whole cover (after the photos, before the lettering). */
-export function paintGradeWash(ctx, w, h, gradeId) {
-  const grade = GRADES[gradeId];
-  for (const wash of grade.washes) {
-    const g = ctx.createLinearGradient(0, 0, w * 0.35, h);
-    for (const [offset, color] of wash.stops) g.addColorStop(offset, color);
-    ctx.save();
-    ctx.globalCompositeOperation = wash.blend;
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
+import { GRADES, rng } from './config.js';
+
+export function gradeById(id) {
+  return GRADES.find((g) => g.id === id) || GRADES[0];
+}
+
+// Paint a grade's overlay tint over a rect (after the photo is drawn).
+export function paintGradeOverlay(ctx, grade, rect) {
+  const grad = ctx.createLinearGradient(0, rect.y, 0, rect.y + rect.h);
+  grad.addColorStop(0, grade.overlay[0]);
+  grad.addColorStop(1, grade.overlay[1]);
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.fillStyle = grad;
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.restore();
+}
+
+// A soft dark vignette around a rect, so panels feel like poster art.
+export function paintVignette(ctx, rect) {
+  const cx = rect.x + rect.w / 2;
+  const cy = rect.y + rect.h / 2;
+  const r = Math.max(rect.w, rect.h) * 0.72;
+  const grad = ctx.createRadialGradient(cx, cy, r * 0.45, cx, cy, r);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.34)');
+  ctx.save();
+  ctx.fillStyle = grad;
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.restore();
+}
+
+// Seeded film grain over the whole cover: deterministic, so two renders of
+// the same state are byte-identical.
+export function paintGrain(ctx, W, H, seed) {
+  const rand = rng(seed);
+  const step = Math.max(3, Math.round(W / 360));
+  ctx.save();
+  ctx.globalAlpha = 0.05;
+  ctx.fillStyle = '#ffffff';
+  for (let y = 0; y < H; y += step) {
+    for (let x = 0; x < W; x += step) {
+      if (rand() > 0.5) ctx.fillRect(x, y, 1.4, 1.4);
+    }
   }
+  ctx.restore();
+}
+
+// Halftone dots in a band: rows of dots fading out, the classic poster print.
+export function paintHalftone(ctx, rect, colour, seed) {
+  const rand = rng(seed + 7);
+  const gap = Math.max(7, rect.h / 7);
+  ctx.save();
+  ctx.fillStyle = colour;
+  let row = 0;
+  for (let y = rect.y + gap / 2; y < rect.y + rect.h; y += gap, row++) {
+    const fade = 1 - row / Math.max(1, Math.ceil(rect.h / gap));
+    for (let x = rect.x + gap / 2; x < rect.x + rect.w; x += gap) {
+      const r = (gap * 0.26) * (0.4 + 0.6 * fade) * (0.85 + rand() * 0.3);
+      ctx.globalAlpha = 0.10 + 0.30 * fade;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
 }

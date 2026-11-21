@@ -1,93 +1,106 @@
-// Panel geometry: each layout names its photo panels as fractions of the cover.
-// panelRects turns them into pixel rects with a thin gap between panels.
-// A layout may carry a `titleBand` (a fraction of the cover kept for the title block,
-// drawn below the panels) and a `tilt` per panel (degrees, for snapshot layouts).
-export const LAYOUTS = {
-  grid: {
-    id: 'grid', name: 'Empat Panel',
-    panels: [
-      { x: 0, y: 0, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0, w: 0.5, h: 0.5 },
-      { x: 0, y: 0.5, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
-    ],
-  },
-  hero: {
-    id: 'hero', name: 'Hero + Tiga',
-    panels: [
-      { x: 0, y: 0, w: 1, h: 0.62 },
-      { x: 0, y: 0.62, w: 1 / 3, h: 0.38 },
-      { x: 1 / 3, y: 0.62, w: 1 / 3, h: 0.38 },
-      { x: 2 / 3, y: 0.62, w: 1 / 3, h: 0.38 },
-    ],
-  },
-  duo: {
-    id: 'duo', name: 'Dua Panel',
-    panels: [
-      { x: 0, y: 0, w: 0.55, h: 1 },
-      { x: 0.55, y: 0, w: 0.45, h: 1 },
-    ],
-  },
-  full: {
-    id: 'full', name: 'Satu Foto',
-    panels: [{ x: 0, y: 0, w: 1, h: 1 }],
-  },
-  nine: {
-    id: 'nine', name: 'Sembilan Panel',
-    // A 3 x 3 contact sheet over the top 78% of the cover; the bottom 22% is the title band.
-    titleBand: { y: 0.78, h: 0.22 },
-    panels: [
-      { x: 0, y: 0, w: 1 / 3, h: 0.26 },
-      { x: 1 / 3, y: 0, w: 1 / 3, h: 0.26 },
-      { x: 2 / 3, y: 0, w: 1 / 3, h: 0.26 },
-      { x: 0, y: 0.26, w: 1 / 3, h: 0.26 },
-      { x: 1 / 3, y: 0.26, w: 1 / 3, h: 0.26 },
-      { x: 2 / 3, y: 0.26, w: 1 / 3, h: 0.26 },
-      { x: 0, y: 0.52, w: 1 / 3, h: 0.26 },
-      { x: 1 / 3, y: 0.52, w: 1 / 3, h: 0.26 },
-      { x: 2 / 3, y: 0.52, w: 1 / 3, h: 0.26 },
-    ],
-  },
-  tilt: {
-    id: 'tilt', name: 'Miring',
-    // Three overlapping snapshots, each tilted, like photos tossed on a table.
-    // They are drawn in order, so the last one sits on top.
-    panels: [
-      { x: 0.03, y: 0.10, w: 0.44, h: 0.66, tilt: -8 },
-      { x: 0.30, y: 0.04, w: 0.44, h: 0.70, tilt: 2 },
-      { x: 0.55, y: 0.12, w: 0.42, h: 0.64, tilt: 8 },
-    ],
-  },
-};
+// Sampul Senja v3 — layouts: where each photo panel sits on the cover.
+// Every layout takes the panels area {x, y, w, h} (the cover minus the frame
+// bars and the title block) and returns panel rects in cover pixels.
+// A rect may carry rot (radians) for the tilted layout. Panels are numbered
+// in reading order; the layout's panelCount (config.js) decides how many
+// of the state's panels are shown.
 
-/** Pixel rects for a layout on a cover of w × h, with a thin gap between panels. */
-export function panelRects(layoutId, w, h) {
-  const gap = Math.max(4, Math.round(Math.max(w, h) / 180));
-  const half = gap / 2;
-  return LAYOUTS[layoutId].panels.map((p) => ({
-    x: Math.round(p.x * w + half),
-    y: Math.round(p.y * h + half),
-    w: Math.round(p.w * w - gap),
-    h: Math.round(p.h * h - gap),
-    tilt: p.tilt ?? 0,
-  }));
-}
+const GAP = 0.012; // gap between panels, as a fraction of the cover width
 
-/** The pixel rect of a layout's title band on a cover of w × h, or null. */
-export function titleBandRect(layoutId, w, h) {
-  const band = LAYOUTS[layoutId].titleBand;
-  if (!band) return null;
-  return { x: 0, y: Math.round(band.y * h), w, h: Math.round(band.h * h) };
-}
-
-/** The index of the panel holding point (px, py) on a cover of w × h, or -1.
- * The last match wins, so on overlapping layouts the card on top is selected. */
-export function panelAt(layoutId, w, h, px, py) {
-  const rects = panelRects(layoutId, w, h);
-  let found = -1;
-  for (let i = 0; i < rects.length; i += 1) {
-    const r = rects[i];
-    if (px >= r.x && px < r.x + r.w && py >= r.y && py < r.y + r.h) found = i;
+function gridRects(area, cols, rows, count) {
+  const g = Math.max(4, area.w * GAP);
+  const cw = (area.w - g * (cols - 1)) / cols;
+  const ch = (area.h - g * (rows - 1)) / rows;
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    out.push({
+      x: area.x + c * (cw + g),
+      y: area.y + r * (ch + g),
+      w: cw,
+      h: ch,
+      rot: 0,
+    });
   }
-  return found;
+  return out;
+}
+
+// Empat Panel: a 2x2 grid.
+function grid(area) {
+  return gridRects(area, 2, 2, 4);
+}
+
+// Hero + Tiga: a big hero on the left, three stacked panels on the right.
+function hero(area) {
+  const g = Math.max(4, area.w * GAP);
+  const heroW = area.w * 0.62;
+  const sideW = area.w - heroW - g;
+  const sideH = (area.h - g * 2) / 3;
+  const out = [{ x: area.x, y: area.y, w: heroW, h: area.h, rot: 0 }];
+  for (let i = 0; i < 3; i++) {
+    out.push({
+      x: area.x + heroW + g,
+      y: area.y + i * (sideH + g),
+      w: sideW,
+      h: sideH,
+      rot: 0,
+    });
+  }
+  return out;
+}
+
+// Dua Panel: two side-by-side panels.
+function duo(area) {
+  return gridRects(area, 2, 1, 2);
+}
+
+// Satu Foto: one full-bleed panel.
+function single(area) {
+  return [{ x: area.x, y: area.y, w: area.w, h: area.h, rot: 0 }];
+}
+
+// Sembilan Panel: a 3x3 grid.
+function nine(area) {
+  return gridRects(area, 3, 3, 9);
+}
+
+// Miring: three overlapping tilted snapshots, like photos tossed on a table.
+function tilted(area) {
+  const w = area.w * 0.42;
+  const h = area.h * 0.94;
+  const cy = area.y + area.h / 2 - h / 2;
+  return [
+    { x: area.x + area.w * 0.02, y: cy + area.h * 0.02, w, h, rot: -0.14 },
+    { x: area.x + area.w * 0.29, y: cy - area.h * 0.02, w, h, rot: 0.03 },
+    { x: area.x + area.w * 0.56, y: cy + area.h * 0.02, w, h, rot: 0.14 },
+  ];
+}
+
+// Poster: a movie-poster composition — a big hero close-up on top and four
+// small panels in a row beneath it.
+function poster(area) {
+  const g = Math.max(4, area.w * GAP);
+  const heroH = area.h * 0.64;
+  const rowH = area.h - heroH - g;
+  const out = [{ x: area.x, y: area.y, w: area.w, h: heroH, rot: 0 }];
+  const cw = (area.w - g * 3) / 4;
+  for (let i = 0; i < 4; i++) {
+    out.push({
+      x: area.x + i * (cw + g),
+      y: area.y + heroH + g,
+      w: cw,
+      h: rowH,
+      rot: 0,
+    });
+  }
+  return out;
+}
+
+export const LAYOUT_FNS = { grid, hero, duo, single, nine, tilted, poster };
+
+// Panel rects for a layout id inside the panels area.
+export function layoutPanels(layoutId, area) {
+  const fn = LAYOUT_FNS[layoutId] || grid;
+  return fn(area);
 }

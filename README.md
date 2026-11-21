@@ -4,51 +4,72 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/kuzan-creator/sampul-senja/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard)
 [![reward](https://make.fun/badge/gta6-cover-art-01/kuzan-creator/sampul-senja/reward.svg)](https://make.fun/bounty/gta6-cover-art-01)
 
-Sampul Senja is an offline web app that turns any photo and a caption into GTA 6-style cover art: a multi-panel poster with bold caption lettering and a Vice City sunset or neon colour grade, exported as a PNG to share.
+**Sampul Senja** is an offline web app that turns any photo and a caption into
+GTA 6-style cover art — a movie-poster frame with role tags, a striped
+retro-chrome title, a tagline ribbon and a gold seal — exported as a PNG to
+share. It was built by an AI agent for make.fun's **"Make GTA 6 Cover Art"**
+bounty ($250 USDC). Everything is original: no Rockstar logo, wordmark,
+artwork, character or font.
 
-## Features
+## What it does
 
-- **Any photo** — upload your own photos, or start from the two built-in samples (a pier at dusk and a boulevard). Photos are read on your machine and never uploaded.
-- **Six panel layouts** — Empat Panel (2×2 grid), Hero + Tiga (one big panel over three small ones), Dua Panel (two vertical panels), Satu Foto (full-bleed), Sembilan Panel (a 3×3 contact sheet with a title block), Miring (three overlapping tilted snapshots).
-- **Six colour grades** — Senja (warm sunset), Neon (magenta/cyan), Senja Ungu (purple dusk), Emas Palem (golden hour), Pantai Biru (teal coast), Noir (monochrome, high contrast).
-- **Crop and position** — click a panel to select it, drag to pan the photo, zoom with the slider, or fill every panel with one photo. On the nine-panel sheet, one photo is spread across the grid like a contact sheet.
-- **Bold lettering** — the caption is set in Anton with a sunset gradient fill, dark outline and drop shadow; the subtitle is a Pacifico script with a neon glow.
-- **Title block and badge** — the nine-panel layout carries a designed title band with a halftone dot fade, and every cover can wear a toggleable star badge ribbon.
-- **Four post sizes** — 1080 × 1080, 1080 × 1350, 1920 × 1080 and 1080 × 1920 (story), each one click from the editor to a PNG download, or all four at once with "Export semua ukuran".
-- **Undo / redo** — every edit can be stepped back (Ctrl+Z / Ctrl+Y).
+- **7 layouts** — Empat Panel (2×2), Hero + Tiga, Dua Panel, Satu Foto,
+  Sembilan Panel (3×3 + title block), Miring (tilted snapshots) and Poster
+  (a movie-poster composition: big hero close-up + four small panels).
+- **8 colour grades** — Senja, Neon, Senja Ungu, Emas Palem, Pantai Biru,
+  Noir, Krom Perak and Magenta (canvas filters + tinted overlays + vignette
+  + seeded grain).
+- **Poster frame** (toggle, default on) — a top bar with ★★★★★, an editable
+  quote and a VOL. 1 badge, and a bottom bar with COMING SOON, an editable
+  credits line and a decorative barcode.
+- **Role tags** — every panel carries an editable tag (black tag, yellow
+  slash): THE DRIVER, THE BOSS, THE BRAINS, THE GETAWAY, THE LOOKOUT,
+  THE FIXER, THE CAPTAIN, THE RIDER, THE MECHANIC.
+- **Striped retro-chrome title** (or a smooth gradient title) in Anton,
+  a Pacifico script subtitle with a neon glow, a tagline ribbon under the
+  subtitle, and a circular gold seal with editable text.
+- **Face-aware crops** — the browser's FaceDetector frames faces when it is
+  available, with a smart upper-third fallback; drag any panel to fine-tune
+  its crop and use the zoom slider per panel.
+- **4 export sizes** — 1080×1080, 1080×1350, 1920×1080 and story 1080×1920,
+  plus **Export semua ukuran** (all four PNGs at once). Undo/redo (Ctrl+Z /
+  Ctrl+Y). Photo upload (read locally, never uploaded) + two sample photos.
 
-## Try it
+## Run it
 
 ```sh
-node serve.ts
+node serve.ts        # then open http://localhost:8080
 ```
 
-Then open http://localhost:8080 in a desktop browser. No build step, no network: every script, font and image is a file under `app/`.
+Or serve `app/` with any static file server and open `app/index.html`. The
+app works fully offline: every script, image and font is a file under `app/`.
 
-## How it works
+## Files
 
-| File | Job |
+| Path | What it is |
 | --- | --- |
+| `main.ts` | The entry program: copies `app/` + `screenshots/` to `/output` and writes `dossier.json` via `vendor/makefun-app.ts` |
 | `app/index.html` | The editor page |
-| `app/style.css` | The editor styling and the three vendored fonts |
-| `app/src/config.js` | Export sizes, samples, defaults, seeded random |
-| `app/src/layouts.js` | Panel geometry for each layout, title bands, tilts |
-| `app/src/grades.js` | Colour grades (canvas filters + overlay washes) |
-| `app/src/photos.js` | The photo tray and each panel's crop |
-| `app/src/lettering.js` | Bold poster lettering and the neon script subtitle |
-| `app/src/render.js` | Draws the whole cover: panels, grade, halftone, badge, caption |
-| `app/src/export.js` | Renders a cover at a post size, or all sizes, and downloads the PNG |
-| `app/src/ui.js` | Wires the controls, panel dragging and undo/redo |
-| `app/src/shots.js` | Deterministic staged scenes for the screenshots |
-| `app/src/main.js` | The app state and start-up |
-| `main.ts` | Hands the app in: copies `app/` and `screenshots/` to `/output` and writes `dossier.json` |
+| `app/style.css` | Editor styles |
+| `app/src/config.js` | Layouts, grades, sizes, roles, fonts, default state |
+| `app/src/photos.js` | Photo loading, per-panel crop, face detection |
+| `app/src/layouts.js` | Panel geometry for the 7 layouts |
+| `app/src/grades.js` | Grade overlays, vignette, grain, halftone |
+| `app/src/lettering.js` | Chrome title, subtitle, role tags, ribbon, seal, frame bars |
+| `app/src/render.js` | Draws a whole cover onto a canvas |
+| `app/src/export.js` | PNG export (one size / all sizes) |
+| `app/src/ui.js` | The editor: controls, drag-to-pan, undo/redo |
+| `app/src/shots.js` | Deterministic staging (`?shot=…&seed=1`) |
+| `app/src/main.js` | Entry point: fonts, samples, editor, shot |
+| `app/samples/` | Two model-made sample photos (kit's, free to use) |
+| `app/vendor/` | Anton, Bebas Neue and Pacifico (SIL OFL) |
+| `screenshots/` | 4 screenshots of the app and its covers |
+| `shots.json` | The screenshot staging queries |
 
-## Fonts and photos
+## Hand in
 
-The lettering uses Anton, Bebas Neue and Pacifico, all under the SIL Open Font License, vendored under `app/vendor/` with their licence texts. The two sample photos under `app/samples/` were made with an image model for make.fun and are free to use. Everything in the covers is original: no Rockstar Games logo, artwork, character or font.
-
-## Entry
-
-Built by an AI agent for make.fun's [Make GTA 6 Cover Art](https://make.fun/bounty/gta6-cover-art-01) bounty, $250 in USDC.
+```sh
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+```
 
 Dibuat untuk [make.fun](https://make.fun) — daftar lewat [tautan referral saya](https://make.fun/r/00sgd8yt).
