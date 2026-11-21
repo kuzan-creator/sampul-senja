@@ -1,152 +1,154 @@
+/* Dusk Cover Studio — the editor interface. Dark neon styling; the cover
+   itself is drawn on canvas, so this file only dresses the controls. */
 @font-face {
-  font-family: 'Anton';
-  src: url('vendor/Anton-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: "Anton";
+  src: url("vendor/Anton-Regular.ttf") format("truetype");
   font-display: swap;
 }
 @font-face {
-  font-family: 'Bebas Neue';
-  src: url('vendor/BebasNeue-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: "Bebas Neue";
+  src: url("vendor/BebasNeue-Regular.ttf") format("truetype");
   font-display: swap;
 }
 @font-face {
-  font-family: 'Pacifico';
-  src: url('vendor/Pacifico-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: "Pacifico";
+  src: url("vendor/Pacifico-Regular.ttf") format("truetype");
   font-display: swap;
 }
 
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: #0d0618;
-  color: #f3eefc;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #0d0716;
+  color: #f2e9ff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-header {
+.topbar {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  border-bottom: 1px solid #2a1a45;
-}
-.logo {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #ff7a18, #ff2e88);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Anton', sans-serif;
-  font-size: 20px;
-  color: #fff;
-}
-header h1 { font-size: 20px; margin: 0; font-family: 'Anton', sans-serif; letter-spacing: 1px; }
-header p { margin: 0; color: #b9a8d8; font-size: 13px; }
-header .spacer { flex: 1; }
-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: baseline;
   gap: 16px;
-  padding: 16px 18px;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, #1a0b2e, #3d0a4d 55%, #0a2a4d);
+  border-bottom: 2px solid #ff2d78;
+}
+.brand {
+  font-family: Anton, "Arial Black", sans-serif;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: #fff8d6;
+}
+.brand span { color: #00e5ff; }
+.sub { color: #ffd166; font-size: 13px; }
+.app {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  padding: 16px 20px 32px;
   align-items: start;
 }
-#preview-wrap { position: relative; }
-#preview {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
-  background: #14082a;
-  cursor: grab;
-  touch-action: none;
-}
-#preview:active { cursor: grabbing; }
-#face-note {
-  position: absolute;
-  top: 10px; left: 10px;
-  background: rgba(16, 185, 129, 0.92);
-  color: #04150d;
-  font-size: 12px; font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 999px;
-}
-aside { display: flex; flex-direction: column; gap: 14px; }
-section {
-  background: #180d2c;
-  border: 1px solid #2a1a45;
+.controls { display: flex; flex-direction: column; gap: 14px; }
+.group {
+  background: #1a0f2b;
+  border: 1px solid #3a2358;
   border-radius: 10px;
   padding: 12px;
 }
-section h2 {
-  margin: 0 0 10px;
-  font-size: 12px;
+.group h2 {
+  margin: 0 0 8px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 19px;
   letter-spacing: 2px;
-  color: #ffd76a;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
+  color: #ffd166;
 }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip {
-  background: #241640;
-  color: #e8ddff;
-  border: 1px solid #3a2560;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 13px;
+.group label {
+  display: block;
+  font-size: 12px;
+  color: #c9b8e8;
+  margin: 6px 0;
+}
+.group input[type="text"], .group select {
+  width: 100%;
+  margin-top: 3px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  border: 1px solid #4a2f6e;
+  background: #0d0716;
+  color: #f2e9ff;
+  font-size: 14px;
+}
+.group .check { display: flex; align-items: center; gap: 8px; }
+.samples {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.sample {
+  padding: 0;
+  border: 2px solid #3a2358;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0d0716;
   cursor: pointer;
 }
-.chip:hover { border-color: #ff2e88; }
-.chip.on { background: #ff2e88; border-color: #ff2e88; color: #fff; }
-button.primary {
-  background: #ff2e88;
-  color: #fff;
-  border: none;
+.sample:hover { border-color: #ff2d78; }
+.sample img { display: block; width: 100%; height: 64px; object-fit: cover; }
+.upload {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 14px;
   border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 14px;
+  background: #ff2d78;
+  color: #fff;
   font-weight: 700;
   cursor: pointer;
 }
-button.ghost {
-  background: transparent;
-  color: #e8ddff;
-  border: 1px solid #3a2560;
-  border-radius: 8px;
-  padding: 9px 12px;
+.hint { font-size: 12px; color: #9d8ac2; margin: 6px 0 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #4a2f6e;
+  background: #0d0716;
+  color: #f2e9ff;
   font-size: 13px;
   cursor: pointer;
 }
-button.ghost:hover { border-color: #ff2e88; }
-.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-label { display: block; font-size: 12px; color: #b9a8d8; margin: 8px 0 2px; }
-input[type="text"], input[type="range"] { width: 100%; }
-input[type="text"] {
-  background: #0d0618;
-  color: #f3eefc;
-  border: 1px solid #3a2560;
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 13px;
-}
-input[type="text"]:focus { outline: 2px solid #ff2e88; border-color: #ff2e88; }
-#samples { display: flex; gap: 8px; }
-.sample {
-  background: #241640;
-  border: 1px solid #3a2560;
+.chip:hover { border-color: #00e5ff; }
+.chip.on { background: #ff2d78; border-color: #ff2d78; color: #fff; }
+button {
+  padding: 8px 12px;
   border-radius: 8px;
-  padding: 4px;
-  color: #e8ddff;
+  border: 1px solid #4a2f6e;
+  background: #241638;
+  color: #f2e9ff;
+  font-size: 14px;
   cursor: pointer;
-  width: 50%;
 }
-.sample img { width: 100%; height: 64px; object-fit: cover; border-radius: 5px; display: block; }
-.sample span { font-size: 12px; display: block; padding: 4px 2px; }
-.hint { font-size: 12px; color: #b9a8d8; margin: 8px 0 0; }
-.toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 6px 0; color: #e8ddff; }
-.toggle input { width: auto; }
-#roles label { margin-top: 6px; }
-body.cover-mode header, body.cover-mode aside { display: none; }
-body.cover-mode main { display: block; padding: 0; }
-body.cover-mode #preview-wrap { position: static; }
-body.cover-mode #preview { border-radius: 0; }
-body.cover-mode #face-note { display: none; }
+button:hover { border-color: #00e5ff; }
+button.primary {
+  background: linear-gradient(90deg, #ff2d78, #ff7a18);
+  border: none;
+  font-weight: 700;
+  width: 100%;
+  margin-top: 8px;
+}
+.stage { position: sticky; top: 12px; }
+#cover {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid #3a2358;
+  background: #12081f;
+  cursor: grab;
+  touch-action: none;
+}
+#cover:active { cursor: grabbing; }
+/* Cover-only mode: the screenshot runs show just the cover. */
+body.cover-only { background: #12081f; }
+body.cover-only .topbar, body.cover-only .controls, body.cover-only .stage .hint {
+  display: none;
+}
+body.cover-only .app { display: block; padding: 0; }
+body.cover-only .stage { position: static; }
+body.cover-only #cover { width: 100vw; height: 100vh; border: none; border-radius: 0; object-fit: contain; }

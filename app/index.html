@@ -1,97 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sampul Senja — Ubah foto jadi sampul ala poster</title>
-<link rel="icon" href="data:,">
+<meta name="description" content="Dusk Cover Studio — turn a photo and a caption into GTA 6-style cover art, offline in your browser.">
+<title>Dusk Cover Studio — GTA 6 Cover Art</title>
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:,">
 </head>
 <body>
-<header>
-  <div class="logo">SS</div>
-  <div>
-    <h1>Sampul Senja</h1>
-    <p>Ubah foto jadi sampul ala poster — offline, tanpa unggah.</p>
-  </div>
-  <div class="spacer"></div>
-  <button class="ghost" id="btn-undo" type="button">↩ Urungkan</button>
-  <button class="ghost" id="btn-redo" type="button">↪ Ulangi</button>
+<header class="topbar">
+  <div class="brand">DUSK <span>COVER STUDIO</span></div>
+  <div class="sub">Ubah foto + caption jadi cover art gaya GTA 6</div>
 </header>
-<main>
-  <div id="preview-wrap">
-    <canvas id="preview" width="960" height="540"></canvas>
-    <div id="face-note" hidden>Wajah terdeteksi ✓</div>
-  </div>
-  <aside>
-    <section>
-      <h2>FOTO</h2>
-      <div class="row">
-        <button class="primary" id="btn-upload" type="button">+ Unggah foto</button>
-        <button class="ghost" id="btn-fill-all" type="button">Isi semua panel</button>
-      </div>
-      <input type="file" id="file-photo" accept="image/*" hidden>
-      <div id="samples"></div>
-      <p class="hint">Foto dibaca di perangkatmu dan tidak pernah diunggah.</p>
-      <label for="zoom">Zoom panel terpilih</label>
-      <input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1">
-      <p class="hint">Klik panel untuk memilihnya, lalu seret untuk menggeser foto di dalamnya.</p>
-    </section>
-    <section>
-      <h2>TATA LETAK</h2>
-      <div class="chips" id="layouts"></div>
-    </section>
-    <section>
-      <h2>WARNA</h2>
-      <div class="chips" id="grades"></div>
-    </section>
-    <section>
-      <h2>GAYA JUDUL</h2>
-      <div class="chips" id="title-styles"></div>
-    </section>
-    <section>
-      <h2>UKURAN</h2>
-      <div class="chips" id="sizes"></div>
-    </section>
-    <section>
-      <h2>JUDUL &amp; TEKS</h2>
-      <label for="in-title">Judul</label>
-      <input type="text" id="in-title" maxlength="40">
-      <label for="in-subtitle">Subjudul</label>
-      <input type="text" id="in-subtitle" maxlength="60">
-      <label for="in-quote">Kutipan (bar atas)</label>
-      <input type="text" id="in-quote" maxlength="80">
-      <label for="in-tagline">Tagline (pita)</label>
-      <input type="text" id="in-tagline" maxlength="60">
-      <label for="in-credits">Kredit (bar bawah)</label>
-      <input type="text" id="in-credits" maxlength="80">
-      <label for="in-sealText">Teks segel emas</label>
-      <input type="text" id="in-sealText" maxlength="30">
-    </section>
-    <section>
-      <h2>ROLE TAG</h2>
-      <div id="roles"></div>
-    </section>
-    <section>
-      <h2>TAMPILAN</h2>
-      <label class="toggle"><input type="checkbox" id="tg-frame"> Bingkai poster (kutipan + credit + barcode)</label>
-      <label class="toggle"><input type="checkbox" id="tg-tags"> Role tag di tiap panel</label>
-      <label class="toggle"><input type="checkbox" id="tg-seal"> Segel emas</label>
-    </section>
-    <section>
-      <h2>EKSPOR</h2>
-      <div class="row">
-        <button class="primary" id="btn-export-all" type="button">Export semua ukuran</button>
-      </div>
-      <div class="row" style="margin-top: 8px;">
-        <button class="ghost" type="button" data-export="square">1080 × 1080</button>
-        <button class="ghost" type="button" data-export="portrait">1080 × 1350</button>
-        <button class="ghost" type="button" data-export="wide">1920 × 1080</button>
-        <button class="ghost" type="button" data-export="story">Story</button>
-      </div>
-    </section>
-  </aside>
+<main class="app">
+  <section class="controls">
+    <div class="group">
+      <h2>Foto</h2>
+      <div id="samples" class="samples"></div>
+      <label class="upload">Upload foto
+        <input type="file" id="upload" accept="image/*" hidden>
+      </label>
+      <p class="hint">Klik foto contoh untuk menaruhnya di panel terpilih.</p>
+    </div>
+    <div class="group">
+      <h2>Panel terpilih</h2>
+      <p id="panel-no" class="hint">Panel terpilih: 1</p>
+      <label>Foto panel
+        <select id="in-panel-photo"></select>
+      </label>
+    </div>
+    <div class="group">
+      <h2>Layout</h2>
+      <div id="layouts" class="chips"></div>
+    </div>
+    <div class="group">
+      <h2>Grade warna</h2>
+      <div id="grades" class="chips"></div>
+    </div>
+    <div class="group">
+      <h2>Teks</h2>
+      <label>Judul <input id="in-title" type="text"></label>
+      <label>Subtitle <input id="in-subtitle" type="text"></label>
+      <label>Tagline <input id="in-tagline" type="text"></label>
+      <label>Kutipan <input id="in-quote" type="text"></label>
+      <label>Kredit <input id="in-credits" type="text"></label>
+      <label>Gaya judul
+        <select id="in-titlestyle">
+          <option value="chrome">Krom</option>
+          <option value="gradient">Gradasi</option>
+        </select>
+      </label>
+    </div>
+    <div class="group">
+      <h2>Role tag per panel</h2>
+      <div id="tags"></div>
+    </div>
+    <div class="group">
+      <h2>Bingkai</h2>
+      <label class="check"><input id="in-frame" type="checkbox" checked> Bingkai poster</label>
+      <label class="check"><input id="in-seal" type="checkbox" checked> Segel emas</label>
+      <label class="check"><input id="in-halftone" type="checkbox" checked> Halftone</label>
+    </div>
+    <div class="group">
+      <h2>Riwayat</h2>
+      <button id="btn-undo" type="button">Undo</button>
+      <button id="btn-redo" type="button">Redo</button>
+    </div>
+    <div class="group">
+      <h2>Export PNG</h2>
+      <div id="exports" class="chips"></div>
+      <button id="btn-export-all" type="button" class="primary">Export semua ukuran</button>
+    </div>
+  </section>
+  <section class="stage">
+    <canvas id="cover" width="1080" height="810"></canvas>
+    <p class="hint">Pratinjau cover — klik panel untuk memilih, seret untuk menggeser foto, gulir untuk zoom.</p>
+  </section>
 </main>
-<script type="module" src="./src/main.js"></script>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>

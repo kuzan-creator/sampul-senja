@@ -1,46 +1,28 @@
-// Sampul Senja v4 — a make.fun gta6-cover-art-01 entry (Node 22, standard
-// library only). The app is this directory's app/ folder: plain static files
-// a desktop browser loads offline (app/index.html and its ES modules, the
-// three OFL fonts vendored under app/vendor/, no library and no network
-// request). This program hands it in: it copies app/ and screenshots/ from
-// beside this file to /output and writes /output/dossier.json, the summary
-// the judge reads, with the vendored make.fun library.
-//
-// The app turns a photo and a caption into GTA-style movie-poster cover art:
-// a poster frame (quote bar, credits bar, COMING SOON, barcode), an editable
-// role tag on every panel, a striped retro-chrome title, a tagline ribbon, a
-// gold seal, face-aware crops, 7 layouts, 8 grades, and PNG export in 4
-// sizes. Its two sample photos (app/samples/) were made for make.fun with
-// an image model and are free to use.
-//
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Dusk Cover Studio v5 — entry point for the make.fun "Make GTA 6 Cover Art"
+// bounty. This program copies the finished web app (app/) and its four
+// screenshots (screenshots/) into the output directory and writes the
+// canonical dossier.json that the scorer compares against its own run.
+// It uses only the Node standard library plus the kit's vendor file, runs
+// twice with byte-identical output, and never touches the network.
+import { buildDossier } from "./vendor/makefun-app.ts";
+import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { buildDossier } from './vendor/makefun-app.ts';
+  const out = process.argv[2] ?? "/output";
+  console.log(`Dusk Cover Studio v5 — writing the entry to ${out}`);
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+rmSync(out, { recursive: true, force: true });
+mkdirSync(join(out, "app"), { recursive: true });
+mkdirSync(join(out, "screenshots"), { recursive: true });
+cpSync("app", join(out, "app"), { recursive: true });
+cpSync("screenshots", join(out, "screenshots"), { recursive: true });
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
-
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
-// files, in all, or a path under app/ over 1000 bytes: app/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
 writeFileSync(
-  join(out, 'dossier.json'),
+  join(out, "dossier.json"),
   buildDossier(out, {
     text_max_bytes: 163840,
     screenshots: { max: 4, max_bytes: 262144 },
     app_max_files: 993,
     app_max_bytes: 50331648,
-    app_path_max_bytes: 1000,
   }),
 );

@@ -1,66 +1,75 @@
-// Sampul Senja v4 — deterministic staging. ?shot=<name>&seed=1 picks one of
-// the four screenshot presets, so the same URL always renders the same
-// cover. The seed is accepted for compatibility and ignored: the photos
-// are the fixed kit samples, so nothing random is involved.
+// Dusk Cover Studio — deterministic staging: each named shot sets the whole
+// state (layout, grade, title, photos, tags) so a screenshot run reproduces
+// the same cover every time. One file, one job: the four staged covers.
+import { makePanels } from "./photos.js";
+import { layoutPanels } from "./layouts.js";
 
 export const SHOTS = {
-  cover1: {
-    mode: 'cover',
-    layout: 'hero3',
-    grade: 'ungu',
-    title: 'DERMAGA TERAKHIR',
-    subtitle: 'Satu malam di pelabuhan',
-    tagline: 'ONE CITY, ONE NIGHT',
-    photos: ['pier', 'boulevard', 'pier', 'boulevard'],
-    size: 'wide',
+  "cover-neon": {
+    layout: "hero3",
+    grade: "senja",
+    title: "JALAN NEON",
+    subtitle: "Kota Senja",
+    tagline: "Satu kota. Seribu cerita.",
+    quote: "Kota ini tidak pernah tidur.",
+    credits: "Sebuah cerita dari Kota Senja",
+    photos: ["portrait", "car", "marina", "boulevard2"],
+    tags: ["THE DRIVER", "THE BOSS", "THE QUEEN", "THE NIGHT"],
   },
-  editor: {
-    mode: 'editor',
-    layout: 'nine',
-    grade: 'biru',
-    title: 'SENJA BIRU',
-    subtitle: 'Biru di ujung senja',
-    tagline: 'EVERYONE WANTS A CUT OF THE SUNSET',
-    photos: ['boulevard', 'pier', 'boulevard', 'pier', 'boulevard', 'pier', 'boulevard', 'pier', 'boulevard'],
-    size: 'wide',
+  "editor-panel": {
+    layout: "grid9",
+    grade: "biru",
+    title: "OMBAK EMAS",
+    subtitle: "Dermaga Terakhir",
+    tagline: "Ombak tidak pernah berbohong.",
+    quote: "Laut menyimpan semua rahasia.",
+    credits: "Sebuah cerita dari Dermaga Senja",
+    photos: ["marina", "portrait", "car", "boulevard2", "pier", "boulevard", "portrait", "car", "marina"],
+    tags: ["THE QUEEN", "THE DRIVER", "THE BOSS", "THE NIGHT", "THE FIXER", "THE LOOKOUT", "THE RUNNER", "THE DEALER", "THE HEIST"],
   },
-  cover3: {
-    mode: 'cover',
-    layout: 'poster',
-    grade: 'krom',
-    title: 'KOTA KROM',
-    subtitle: 'Kilau di ujung jalan',
-    tagline: 'SHINE BRIGHT, DRIVE FAST',
-    photos: ['pier', 'boulevard', 'pier', 'boulevard', 'pier'],
-    size: 'story',
+  "cover-story": {
+    layout: "poster",
+    grade: "krom",
+    title: "KOTA PALEM",
+    subtitle: "Senja Terakhir",
+    tagline: "Jalan pulang paling jauh.",
+    quote: "Palem menari, kota bernapas.",
+    credits: "Sebuah cerita dari Kota Palem",
+    photos: ["car", "boulevard2", "portrait"],
+    tags: ["THE BOSS", "THE LOOKOUT", "THE DRIVER"],
   },
-  cover4: {
-    mode: 'cover',
-    layout: 'duo',
-    grade: 'magenta',
-    title: 'SENJA MAGENTA',
-    subtitle: 'Kota menyala magenta',
-    tagline: 'EVERYONE WANTS A CUT OF THE SUNSET',
-    photos: ['boulevard', 'pier'],
-    size: 'square',
+  "cover-square": {
+    layout: "duo",
+    grade: "magenta",
+    title: "SENJA TERAKHIR",
+    subtitle: "Jalan Neon",
+    tagline: "Terakhir bukan berarti akhir.",
+    quote: "Senja ini milik kita.",
+    credits: "Sebuah cerita dari Jalan Neon",
+    photos: ["marina", "portrait"],
+    tags: ["THE QUEEN", "THE DRIVER"],
   },
 };
 
-export function shotFromUrl() {
-  const q = new URLSearchParams(window.location.search);
-  return SHOTS[q.get('shot')] ? q.get('shot') : null;
-}
-
-export function applyShot(state, name) {
-  const shot = SHOTS[name];
-  if (!shot) return state;
-  const next = { ...state };
-  next.layout = shot.layout;
-  next.grade = shot.grade;
-  next.title = shot.title;
-  next.subtitle = shot.subtitle;
-  next.tagline = shot.tagline;
-  next.size = shot.size;
-  next.panels = shot.photos.map((src) => ({ src, panX: 0, panY: 0, zoom: 1, face: null }));
-  return next;
+export function applyShot(state, id) {
+  const shot = SHOTS[id];
+  if (!shot) return false;
+  state.layout = shot.layout;
+  state.grade = shot.grade;
+  state.title = shot.title;
+  state.subtitle = shot.subtitle;
+  state.tagline = shot.tagline;
+  state.quote = shot.quote;
+  state.credits = shot.credits;
+  const count = layoutPanels(shot.layout).length;
+  state.panels = makePanels(shot.photos, count);
+  state.panels.forEach((p, i) => {
+    p.tag = shot.tags[i % shot.tags.length];
+    const img = state.photos.get(p.photo);
+    if (img && img._focus) {
+      p.fx = img._focus.x;
+      p.fy = img._focus.y;
+    }
+  });
+  return true;
 }

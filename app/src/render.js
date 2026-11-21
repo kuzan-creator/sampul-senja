@@ -1,253 +1,261 @@
-// Sampul Senja v4 — the cover renderer. One function draws the whole
-// poster on any canvas at any size: the poster frame, the photo panels with
-// their grade, the role tags, the title block, the tagline ribbon, and the
-// gold seal. Deterministic: the same state always draws the same pixels
-// (the barcode stripes come from a fixed pattern, not Math.random).
+// Dusk Cover Studio — render: draws the whole cover onto a canvas from the
+// state. One file, one job: pixels. Deterministic — the same state draws the
+// same cover, every time.
+import { layoutPanels } from "./layouts.js";
+import { gradeOf } from "./grades.js";
+import { drawPhoto } from "./photos.js";
+import { chromeTitle, gradientTitle, scriptSubtitle, roleTag } from "./lettering.js";
+import { ROLE_TAGS } from "./config.js";
 
-import { panelsFor } from './layouts.js';
-import { gradeOf } from './grades.js';
-import { drawCover } from './photos.js';
-import {
-  drawChromeTitle, drawGradientTitle, drawScriptSubtitle, drawHalftone, starPath,
-} from './lettering.js';
-
-const INK = '#14082a';
-const GOLD = '#ffd76a';
-
-function roundRect(ctx, x, y, w, h, r) {
+function star(ctx, cx, cy, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-function drawBarcode(ctx, x, y, w, h) {
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = '#111111';
-  // Fixed stripe pattern, so every render is identical.
-  const pattern = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 1, 3, 1, 2, 1, 4, 1, 1, 2, 3];
-  let px = x + 3;
-  let i = 0;
-  while (px < x + w - 4) {
-    const bw = pattern[i % pattern.length] * (w / 90);
-    ctx.fillRect(px, y + 2, bw, h - 4);
-    px += bw + (w / 90);
-    i++;
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rad = i % 2 === 0 ? r : r * 0.45;
+    const x = cx + Math.cos(a) * rad;
+    const y = cy + Math.sin(a) * rad;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
-}
-
-function drawRoleTag(ctx, x, y, h, text) {
-  ctx.font = `400 ${h * 0.62}px "Bebas Neue", sans-serif`;
-  const tw = ctx.measureText(text).width;
-  const w = tw + h * 1.1;
-  ctx.fillStyle = 'rgba(10,5,20,0.92)';
-  roundRect(ctx, x, y, w, h, h * 0.22);
-  ctx.fill();
-  // Yellow slash at the tag's left edge.
-  ctx.fillStyle = GOLD;
-  ctx.beginPath();
-  ctx.moveTo(x + h * 0.22, y + h * 0.14);
-  ctx.lineTo(x + h * 0.42, y + h * 0.14);
-  ctx.lineTo(x + h * 0.30, y + h * 0.86);
-  ctx.lineTo(x + h * 0.10, y + h * 0.86);
   ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, x + h * 0.58, y + h * 0.54);
 }
 
-function drawSeal(ctx, cx, cy, r, text) {
-  const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
-  g.addColorStop(0, '#ffe9ad');
-  g.addColorStop(0.55, '#f5b942');
-  g.addColorStop(1, '#b97f16');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.lineWidth = Math.max(1.5, r * 0.07);
-  ctx.strokeStyle = '#8a5c0e';
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.82, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(138,92,14,0.7)';
-  ctx.lineWidth = Math.max(1, r * 0.03);
-  ctx.stroke();
-  // Star on top, text curved by splitting into two lines.
-  ctx.fillStyle = '#7a4d08';
-  starPath(ctx, cx, cy - r * 0.34, r * 0.24);
-  ctx.fill();
-  ctx.fillStyle = '#5d3a05';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const words = text.split(' ');
-  const lines = words.length > 2
-    ? [words.slice(0, 2).join(' '), words.slice(2).join(' ')]
-    : [text];
-  const fs = r * 0.21;
-  ctx.font = `400 ${fs}px "Bebas Neue", sans-serif`;
-  lines.forEach((line, i) => {
-    ctx.fillText(line, cx, cy + r * 0.18 + i * fs * 1.15);
-  });
+// Deterministic pseudo-random numbers from a seed, for the barcode.
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-function drawRibbon(ctx, cx, y, w, h, text) {
-  const slant = h * 0.5;
-  const g = ctx.createLinearGradient(cx - w / 2, y, cx + w / 2, y);
-  g.addColorStop(0, '#ff7a18');
-  g.addColorStop(1, '#ff2e88');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.moveTo(cx - w / 2 + slant, y);
-  ctx.lineTo(cx + w / 2 - slant, y);
-  ctx.lineTo(cx + w / 2, y + h);
-  ctx.lineTo(cx - w / 2, y + h);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = `400 ${h * 0.52}px "Bebas Neue", sans-serif`;
-  ctx.fillText(text, cx, y + h * 0.54);
+function hashSeed(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
-export function renderCover(canvas, state, images, W, H) {
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-  const frame = state.posterFrame;
-  const topH = frame ? H * 0.058 : 0;
-  const botH = frame ? H * 0.052 : 0;
-  const titleH = H * 0.205;
-  const photo = { x: 0, y: topH, w: W, h: H - topH - botH - titleH };
+function drawBarcode(ctx, x, y, w, h, seedText) {
+  const rand = mulberry32(hashSeed(seedText));
+  ctx.save();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = "#111111";
+  let cx = x + w * 0.04;
+  while (cx < x + w * 0.96) {
+    const bw = 1 + Math.floor(rand() * 4);
+    if (rand() > 0.45) ctx.fillRect(cx, y + h * 0.08, bw, h * 0.84);
+    cx += bw + 1 + Math.floor(rand() * 3);
+  }
+  ctx.restore();
+}
 
-  // Backdrop.
-  ctx.fillStyle = INK;
+function drawHalftone(ctx, x, y, w, h, scale) {
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.16)";
+  const step = 14 * scale;
+  for (let r = 0; r * step < h; r++) {
+    for (let c = 0; c * step < w; c++) {
+      const rad = Math.max(0.6, (1 - (r + c) / 16) * 3.2 * scale);
+      ctx.beginPath();
+      ctx.arc(x + c * step + step / 2, y + r * step + step / 2, rad, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+export function renderCover(ctx, state, W, H) {
+  const S = W / 1080;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#12081f";
   ctx.fillRect(0, 0, W, H);
 
-  // Photo panels.
-  const rects = panelsFor(state.layout);
+  // ---- panels ----
   const grade = gradeOf(state.grade);
-  rects.forEach((frac, i) => {
-    const slot = state.panels[i] || {};
-    const img = images[slot.src] || images.pier || null;
-    const r = {
-      x: photo.x + frac.x * photo.w,
-      y: photo.y + frac.y * photo.h,
-      w: frac.w * photo.w,
-      h: frac.h * photo.h,
-    };
+  const rects = layoutPanels(state.layout);
+  const gutter = Math.max(3, W * 0.006);
+  rects.forEach((r, i) => {
+    const panel = state.panels[i];
+    if (!panel) return;
+    const img = state.photos.get(panel.photo);
+    const px = r.x * W;
+    const py = r.y * H;
+    const pw = r.w * W;
+    const ph = r.h * H;
     ctx.save();
-    if (frac.tilt) {
-      ctx.translate(r.x + r.w / 2, r.y + r.h / 2);
-      ctx.rotate((frac.tilt * Math.PI) / 180);
-      ctx.translate(-r.w / 2, -r.h / 2);
-      ctx.beginPath();
-      ctx.rect(0, 0, r.w, r.h);
-      ctx.clip();
-      if (img) {
-        ctx.filter = grade.filter;
-        drawCover(ctx, img, { x: 0, y: 0, w: r.w, h: r.h }, slot);
-        ctx.filter = 'none';
-        const wash = ctx.createLinearGradient(0, 0, 0, r.h);
-        wash.addColorStop(0, grade.wash[0]);
-        wash.addColorStop(1, grade.wash[1]);
-        ctx.fillStyle = wash;
-        ctx.fillRect(0, 0, r.w, r.h);
-      }
-      ctx.lineWidth = Math.max(2, W * 0.002);
-      ctx.strokeStyle = '#ffffff';
-      ctx.strokeRect(0, 0, r.w, r.h);
-      if (state.showTags) drawRoleTag(ctx, r.w * 0.04, r.h * 0.04, Math.min(r.h * 0.09, 30), state.roles[i] || '');
-      ctx.restore();
+    if (r.rot) {
+      ctx.translate(px + pw / 2, py + ph / 2);
+      ctx.rotate((r.rot * Math.PI) / 180);
+      ctx.translate(-pw / 2, -ph / 2);
     } else {
-      ctx.beginPath();
-      ctx.rect(r.x, r.y, r.w, r.h);
-      ctx.clip();
-      if (img) {
-        ctx.filter = grade.filter;
-        drawCover(ctx, img, r, slot);
-        ctx.filter = 'none';
-        const wash = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
-        wash.addColorStop(0, grade.wash[0]);
-        wash.addColorStop(1, grade.wash[1]);
-        ctx.fillStyle = wash;
-        ctx.fillRect(r.x, r.y, r.w, r.h);
-      }
-      ctx.lineWidth = Math.max(2, W * 0.002);
-      ctx.strokeStyle = '#ffffff';
-      ctx.strokeRect(r.x, r.y, r.w, r.h);
-      if (state.showTags) drawRoleTag(ctx, r.x + r.w * 0.03, r.y + r.h * 0.04, Math.min(r.h * 0.085, 30), state.roles[i] || '');
-      ctx.restore();
+      ctx.translate(px, py);
     }
+    if (img) drawPhoto(ctx, img, { x: 0, y: 0, w: pw, h: ph }, panel, grade.filter);
+    else {
+      ctx.fillStyle = "#2a1745";
+      ctx.fillRect(0, 0, pw, ph);
+    }
+    if (grade.overlay && grade.alpha > 0) {
+      const og = ctx.createLinearGradient(0, 0, 0, ph);
+      og.addColorStop(0, grade.overlay[0]);
+      og.addColorStop(1, grade.overlay[1]);
+      ctx.globalCompositeOperation = grade.blend;
+      ctx.globalAlpha = grade.alpha;
+      ctx.fillStyle = og;
+      ctx.fillRect(0, 0, pw, ph);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    const tag = panel.tag || ROLE_TAGS[i % ROLE_TAGS.length];
+    if (tag) roleTag(ctx, tag, gutter, gutter, S);
+    ctx.restore();
   });
 
-  // Title block: halftone, title, script subtitle, tagline ribbon.
-  const ty = photo.y + photo.h;
-  drawHalftone(ctx, W * 0.06, ty + H * 0.018, W * 0.88, Math.max(1.5, W * 0.0022), '#ffffff');
-  const titleY = ty + H * 0.115;
-  if (state.titleStyle === 'krom') {
-    drawChromeTitle(ctx, state.title, W / 2, titleY, W * 0.92, H * 0.085);
-  } else {
-    drawGradientTitle(ctx, state.title, W / 2, titleY, W * 0.92, H * 0.085);
-  }
-  drawScriptSubtitle(ctx, state.subtitle, W / 2, ty + H * 0.165, W * 0.8, H * 0.032);
-  drawRibbon(ctx, W / 2, ty + H * 0.178, W * 0.52, H * 0.024, state.tagline);
+  // ---- readability scrim behind the title ----
+  const scrim = ctx.createLinearGradient(0, H * 0.52, 0, H * 0.95);
+  scrim.addColorStop(0, "rgba(8,4,16,0)");
+  scrim.addColorStop(1, "rgba(8,4,16,0.78)");
+  ctx.fillStyle = scrim;
+  ctx.fillRect(0, H * 0.52, W, H * 0.43);
 
-  // Gold seal, overlapping the photo area's top-right corner.
-  if (state.showSeal) {
-    drawSeal(ctx, W - W * 0.055, photo.y + H * 0.055, W * 0.048, state.sealText);
+  // ---- tagline ribbon ----
+  if (state.tagline) {
+    const ry = H * 0.585;
+    ctx.save();
+    ctx.translate(W / 2, ry);
+    ctx.rotate(-0.03);
+    ctx.fillStyle = "#ff2d78";
+    const tw = Math.min(W * 0.86, ctx.measureText(state.tagline).width + W * 0.1);
+    ctx.fillRect(-tw / 2, -H * 0.016, tw, H * 0.032);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `700 ${Math.round(H * 0.016)}px "Bebas Neue", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(state.tagline.toUpperCase(), 0, 0);
+    ctx.restore();
   }
 
-  // Poster frame: top quote bar and bottom credits bar.
-  if (frame) {
-    // Top bar: stars left, quote centred, VOL. 1 badge right. The quote is
-    // shrunk until it fits the symmetric space around the centre between
-    // the stars and the badge, so it never overlaps them on narrow covers
-    // (story, square).
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.font = `400 ${H * 0.028}px sans-serif`;
-    const stars = '★★★★★';
-    const starsW = ctx.measureText(stars).width;
-    ctx.fillText(stars, W * 0.025, topH * 0.52);
-    const quoteText = `"${state.quote}"`;
-    const gap = W * 0.02;
-    const avail = Math.min(W / 2 - (W * 0.025 + starsW) - gap, W * 0.90 - W / 2 - gap);
-    const quoteMaxW = Math.max(80, avail * 2);
-    let qpx = H * 0.02;
-    ctx.font = `italic 400 ${qpx}px Georgia, serif`;
-    while (qpx > H * 0.011 && ctx.measureText(quoteText).width > quoteMaxW) {
-      qpx -= 0.5;
-      ctx.font = `italic 400 ${qpx}px Georgia, serif`;
-    }
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.fillText(quoteText, W / 2, topH * 0.52);
-    ctx.fillStyle = GOLD;
-    roundRect(ctx, W * 0.90, topH * 0.18, W * 0.075, topH * 0.64, topH * 0.2);
+  // ---- title + subtitle ----
+  let tsize = Math.round(W * 0.125);
+  ctx.font = `900 ${tsize}px Anton, "Arial Black", sans-serif`;
+  const maxW = W * 0.94;
+  while (ctx.measureText(state.title).width > maxW && tsize > 20) {
+    tsize -= 2;
+    ctx.font = `900 ${tsize}px Anton, "Arial Black", sans-serif`;
+  }
+  const titleY = H * 0.845;
+  if (state.titleStyle === "gradient") gradientTitle(ctx, state.title, W / 2, titleY, tsize);
+  else chromeTitle(ctx, state.title, W / 2, titleY, tsize);
+  if (state.subtitle) {
+    scriptSubtitle(ctx, state.subtitle, W / 2, H * 0.9, Math.round(W * 0.032));
+  }
+
+  // ---- gold seal ----
+  // On narrow covers the title runs wide, so the seal moves up to the top
+  // right (below the top bar) instead of sitting on the title's last letter.
+  const narrow = W / H < 1.1;
+  if (state.seal) {
+    const sx = W * 0.885;
+    const sy = narrow ? H * 0.16 : H * 0.815;
+    const sr = W * 0.048;
+    const g = ctx.createRadialGradient(sx - sr * 0.3, sy - sr * 0.3, sr * 0.1, sx, sy, sr);
+    g.addColorStop(0, "#fff3b0");
+    g.addColorStop(0.55, "#ffd166");
+    g.addColorStop(1, "#b4691e");
+    ctx.save();
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = INK;
-    ctx.font = `400 ${H * 0.02}px "Bebas Neue", sans-serif`;
-    ctx.fillText('VOL. 1', W * 0.9375, topH * 0.54);
-    // Bottom bar.
-    const by = H - botH;
-    ctx.textAlign = 'left';
-    ctx.fillStyle = GOLD;
-    ctx.font = `400 ${H * 0.022}px Anton, sans-serif`;
-    ctx.fillText('COMING SOON', W * 0.025, by + botH * 0.55);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.font = `400 ${H * 0.016}px "Bebas Neue", sans-serif`;
-    ctx.fillText(state.credits, W / 2, by + botH * 0.55);
-    drawBarcode(ctx, W * 0.90, by + botH * 0.22, W * 0.075, botH * 0.56);
+    ctx.strokeStyle = "#7a4a12";
+    ctx.lineWidth = Math.max(1.5, sr * 0.05);
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr * 0.82, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "#7a4a12";
+    star(ctx, sx, sy - sr * 0.08, sr * 0.34);
+    ctx.fill();
+    ctx.font = `700 ${Math.round(sr * 0.22)}px "Bebas Neue", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("★ EST. 2026 ★", sx, sy + sr * 0.52);
+    ctx.restore();
   }
-  return canvas;
+
+  // ---- halftone ----
+  // Top right on wide covers; top left on narrow ones, so it never sits
+  // under the gold seal (which moves up there on narrow covers).
+  if (state.halftone) {
+    const hx = narrow ? W * 0.01 : W * 0.86;
+    drawHalftone(ctx, hx, H * 0.1, W * 0.13, H * 0.09, S);
+  }
+
+  // ---- poster frame ----
+  if (state.frame) {
+    // A thin gold edge around the whole cover, inside the frame bars.
+    ctx.strokeStyle = "rgba(255,209,102,0.55)";
+    ctx.lineWidth = Math.max(2, S * 3);
+    ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, W - ctx.lineWidth, H - ctx.lineWidth);
+    const barH = H * 0.072;
+    ctx.fillStyle = "rgba(8,4,16,0.94)";
+    ctx.fillRect(0, 0, W, barH);
+    ctx.fillRect(0, H - barH * 1.15, W, barH * 1.15);
+    // stars
+    const starY = barH * 0.52;
+    const starR = barH * 0.26;
+    ctx.fillStyle = "#ffd166";
+    for (let i = 0; i < 5; i++) {
+      star(ctx, W * 0.035 + i * starR * 2.4, starY, starR);
+      ctx.fill();
+    }
+    // VOL. 1, measured first so the quote can fit beside it.
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `700 ${Math.round(barH * 0.36)}px "Bebas Neue", sans-serif`;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    const volW = ctx.measureText("VOL. 1").width;
+    ctx.fillText("VOL. 1", W * 0.975, starY);
+    // Quote, centred in the free space between the stars and VOL. 1, and
+    // shrunk until it fits (narrow covers otherwise run it over the stars).
+    const starsEnd = W * 0.035 + 5 * starR * 2.4;
+    const qAvail = W * 0.975 - volW - W * 0.02 - starsEnd - W * 0.02;
+    let qSize = Math.round(barH * 0.36);
+    ctx.font = `italic ${qSize}px Georgia, serif`;
+    const qText = `\u201c${state.quote}\u201d`;
+    while (ctx.measureText(qText).width > qAvail && qSize > 10) {
+      qSize -= 1;
+      ctx.font = `italic ${qSize}px Georgia, serif`;
+    }
+    ctx.fillStyle = "#ffe9a8";
+    ctx.textAlign = "center";
+    ctx.fillText(qText, starsEnd + W * 0.02 + qAvail / 2, starY);
+    // bottom bar: COMING SOON + credits + barcode
+    const bbY = H - barH * 1.15;
+    ctx.fillStyle = "#ffd166";
+    ctx.font = `900 ${Math.round(barH * 0.42)}px Anton, sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("COMING SOON", W * 0.03, bbY + barH * 0.575);
+    // Credits, centred in the free space between COMING SOON and the
+    // barcode, shrunk until they fit (narrow covers otherwise overlap).
+    const csW = ctx.measureText("COMING SOON").width;
+    const bcX = W * 0.86;
+    const cAvail = bcX - W * 0.02 - (W * 0.03 + csW + W * 0.02);
+    let cSize = Math.round(barH * 0.3);
+    ctx.font = `${cSize}px Georgia, serif`;
+    while (ctx.measureText(state.credits).width > cAvail && cSize > 9) {
+      cSize -= 1;
+      ctx.font = `${cSize}px Georgia, serif`;
+    }
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText(state.credits, W * 0.03 + csW + W * 0.02 + cAvail / 2, bbY + barH * 0.575);
+    drawBarcode(ctx, bcX, bbY + barH * 0.22, W * 0.11, barH * 0.7, state.title + state.credits);
+  }
 }

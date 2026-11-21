@@ -1,42 +1,70 @@
-// Sampul Senja v4 — colour grades. Each grade is a canvas filter applied to
-// the photo plus a translucent gradient wash drawn over it, so the same
-// photo reads as a different Vice City sunset in every grade.
-
-export const GRADE_DEFS = {
+// Dusk Cover Studio — the eight colour grades. A grade is a canvas filter
+// string applied while drawing each photo, plus a soft tint overlay (a
+// vertical gradient, a blend mode and an alpha) laid over the panel after
+// the photo. One file, one job: colour only, no drawing.
+export const GRADES = {
   senja: {
-    filter: 'saturate(1.25) contrast(1.05) sepia(0.25)',
-    wash: ['rgba(255,122,24,0.20)', 'rgba(255,46,136,0.14)'],
-  },
-  neon: {
-    filter: 'saturate(1.6) contrast(1.15)',
-    wash: ['rgba(255,46,136,0.20)', 'rgba(0,229,255,0.16)'],
+    name: "Senja",
+    filter: "saturate(1.35) contrast(1.08) brightness(1.03)",
+    overlay: ["#ff7a18", "#ff2d78"],
+    blend: "overlay",
+    alpha: 0.18,
   },
   ungu: {
-    filter: 'saturate(1.3) hue-rotate(-20deg) contrast(1.05)',
-    wash: ['rgba(124,58,237,0.24)', 'rgba(255,46,136,0.12)'],
+    name: "Senja Ungu",
+    filter: "saturate(1.3) hue-rotate(18deg) contrast(1.1)",
+    overlay: ["#7b2fff", "#ff2d78"],
+    blend: "overlay",
+    alpha: 0.2,
   },
-  emas: {
-    filter: 'sepia(0.5) saturate(1.4) contrast(1.05)',
-    wash: ['rgba(255,200,60,0.20)', 'rgba(255,122,24,0.10)'],
+  neon: {
+    name: "Neon",
+    filter: "saturate(1.5) contrast(1.15) brightness(1.04)",
+    overlay: ["#00e5ff", "#ff2d95"],
+    blend: "overlay",
+    alpha: 0.16,
   },
   biru: {
-    filter: 'saturate(1.2) hue-rotate(15deg) contrast(1.05)',
-    wash: ['rgba(0,180,200,0.22)', 'rgba(0,80,160,0.14)'],
+    name: "Pantai Biru",
+    filter: "saturate(1.2) hue-rotate(185deg) brightness(1.06)",
+    overlay: ["#00b4ff", "#0a2a6b"],
+    blend: "soft-light",
+    alpha: 0.22,
+  },
+  emas: {
+    name: "Emas Palem",
+    filter: "saturate(1.25) sepia(0.28) contrast(1.06)",
+    overlay: ["#ffd166", "#b4691e"],
+    blend: "overlay",
+    alpha: 0.18,
   },
   noir: {
-    filter: 'grayscale(1) contrast(1.25) brightness(1.02)',
-    wash: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)'],
+    name: "Noir",
+    filter: "grayscale(1) contrast(1.22) brightness(1.05)",
+    overlay: null,
+    blend: "overlay",
+    alpha: 0,
   },
   krom: {
-    filter: 'grayscale(0.7) contrast(1.2) brightness(1.06)',
-    wash: ['rgba(220,230,240,0.10)', 'rgba(120,140,160,0.08)'],
+    name: "Krom Perak",
+    filter: "saturate(0.65) contrast(1.28) brightness(1.1)",
+    overlay: ["#e8ecf1", "#5a6675"],
+    blend: "soft-light",
+    alpha: 0.14,
   },
   magenta: {
-    filter: 'saturate(1.5) hue-rotate(300deg) contrast(1.08)',
-    wash: ['rgba(255,0,128,0.22)', 'rgba(160,0,255,0.14)'],
+    name: "Magenta",
+    filter: "saturate(1.45) hue-rotate(-32deg) contrast(1.1)",
+    overlay: ["#ff2d95", "#6b0a4d"],
+    blend: "overlay",
+    alpha: 0.18,
   },
 };
 
+export function gradeNames() {
+  return Object.entries(GRADES).map(([id, g]) => ({ id, name: g.name }));
+}
+
 export function gradeOf(id) {
-  return GRADE_DEFS[id] || GRADE_DEFS.senja;
+  return GRADES[id] ?? GRADES.senja;
 }
