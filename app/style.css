@@ -1,0 +1,108 @@
+@font-face {
+  font-family: 'Anton';
+  src: url('./vendor/Anton-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('./vendor/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #14091d;
+  color: #f5eef7;
+  font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.topbar {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 12px 20px; border-bottom: 1px solid #2c1740;
+}
+.brand { display: flex; gap: 12px; align-items: center; }
+.brand-mark {
+  width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center;
+  font: 400 20px 'Anton', sans-serif; color: #1c0b26;
+  background: linear-gradient(135deg, #ffd23e, #ff5e3a 55%, #ff2d78);
+}
+.brand h1 { margin: 0; font: 400 24px 'Anton', sans-serif; letter-spacing: 1px; }
+.brand p { margin: 0; color: #c9a8d8; font-size: 13px; }
+.top-actions { display: flex; gap: 8px; }
+.app { display: flex; gap: 20px; padding: 16px 20px; align-items: flex-start; }
+.preview-wrap { flex: 1; min-width: 0; text-align: center; }
+#preview {
+  display: block; margin: 0 auto; max-width: 100%; max-height: calc(100vh - 210px);
+  width: auto; height: auto; border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  cursor: grab; touch-action: none;
+}
+#preview:active { cursor: grabbing; }
+.hint { color: #c9a8d8; font-size: 13px; }
+#status { min-height: 1.4em; color: #ffd23e; font-size: 13px; }
+.controls {
+  width: 340px; flex: none; display: flex; flex-direction: column; gap: 14px;
+  max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 4px;
+}
+.group { background: #1e0f2a; border: 1px solid #2c1740; border-radius: 12px; padding: 12px 14px; }
+.group h2 {
+  margin: 0 0 10px; font: 400 15px 'Bebas Neue', sans-serif; letter-spacing: 2px;
+  text-transform: uppercase; color: #ffb347;
+}
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid #4a2a63; background: #2a1740; color: #f5eef7; border-radius: 999px;
+  padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.chip:hover { border-color: #ff5e78; }
+.chip.active {
+  background: linear-gradient(135deg, #ffd23e, #ff5e3a 55%, #ff2d78);
+  color: #1c0b26; border-color: transparent; font-weight: 700;
+}
+.chip:disabled { opacity: 0.45; cursor: default; }
+.swatch {
+  display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+  margin-right: 6px; vertical-align: -2px;
+}
+label { display: block; margin: 8px 0; font-size: 13px; color: #d9c2e6; }
+input[type="text"] {
+  display: block; width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid #4a2a63; background: #160a1e; color: #f5eef7; font: inherit;
+}
+input[type="range"] { width: 100%; accent-color: #ff5e78; }
+.upload {
+  display: inline-block; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(135deg, #ffd23e, #ff5e3a 55%, #ff2d78);
+  color: #1c0b26; font-weight: 700;
+}
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.thumb {
+  position: relative; width: 72px; height: 72px; padding: 0; border: 2px solid transparent;
+  border-radius: 8px; overflow: hidden; cursor: pointer; background: #160a1e;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb.active { border-color: #ffd23e; }
+.thumb .used {
+  position: absolute; left: 0; right: 0; bottom: 0; background: rgba(10, 0, 18, 0.75);
+  color: #fff; font-size: 10px; padding: 1px 4px; text-align: center;
+}
+.note { color: #c9a8d8; font-size: 12px; }
+.fine { color: #8f6ba6; font-size: 12px; }
+button { font: inherit; }
+/* Screenshot mode: the cover alone, centred. */
+body.shot-cover { background: #0d0613; }
+body.shot-cover .topbar,
+body.shot-cover .controls,
+body.shot-cover .hint,
+body.shot-cover #status { display: none; }
+body.shot-cover .app { padding: 0; }
+body.shot-cover .preview-wrap { width: 100vw; height: 100vh; display: grid; place-items: center; }
+body.shot-cover #preview {
+  max-width: 100vw; max-height: 100vh; border-radius: 0; box-shadow: none; cursor: default;
+}
+@media (max-width: 900px) {
+  .app { flex-direction: column; }
+  .controls { width: 100%; max-height: none; }
+}
